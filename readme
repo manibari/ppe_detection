@@ -1,0 +1,394 @@
+# 🦺 PPE 個人防護設備檢測系統
+
+一個基於 Streamlit 和 SQLite 的自動化個人防護設備檢測系統，支援三階段檢測流程和即時狀態監控。
+
+## 📋 目錄
+
+- [功能特色](#-功能特色)
+- [系統需求](#-系統需求)
+- [安裝步驟](#-安裝步驟)
+- [快速開始](#-快速開始)
+- [檔案結構](#-檔案結構)
+- [系統架構](#-系統架構)
+- [使用說明](#-使用說明)
+- [資料庫結構](#-資料庫結構)
+- [API說明](#-api說明)
+- [故障排除](#-故障排除)
+- [更新日誌](#-更新日誌)
+
+## ✨ 功能特色
+
+### 🎯 核心功能
+- **三階段檢測**: 頭部防護 → 手足防護 → 身體防護
+- **自動狀態機**: 基於SQLite數據的完全自動化檢測流程
+- **即時監控**: 每秒更新檢測狀態和視覺反饋
+- **智能重置**: 人員離開30秒或完成檢查30秒後自動重置
+
+### 🚦 視覺指示
+- **🟢 綠燈**: 檢測通過
+- **🟡 黃燈**: 檢測進行中
+- **⚪ 白燈**: 等待檢測
+- **❌ 紅叉**: 檢測失敗
+
+### 🔧 操作模式
+- **全自動模式**: 基於AI模型結果自動進行檢測
+- **手動通過**: 支援手動強制通過當前階段
+- **系統重置**: 一鍵重置所有檢測狀態
+
+## 💻 系統需求
+
+### 軟體需求
+- Python 3.8+
+- Streamlit 1.28.0+
+- SQLite3 (Python內建)
+
+### 硬體需求
+- RAM: 最少 512MB
+- 儲存空間: 最少 100MB
+- 網路: 可選 (用於遠端存取)
+
+## 🚀 安裝步驟
+
+### 1. 下載專案
+```bash
+git clone <repository-url>
+cd ppe_detection
+```
+
+### 2. 安裝依賴套件
+```bash
+pip install -r requirements.txt
+```
+
+### 3. 創建資料庫
+```bash
+python ppe_simulator.py
+```
+
+### 4. 啟動應用程式
+```bash
+streamlit run app.py
+```
+
+## ⚡ 快速開始
+
+### 方法一：自動模擬模式 (推薦用於測試)
+
+1. **啟動資料庫模擬器**
+   ```bash
+   python ppe_simulator.py
+   # 選擇 1 (自動模擬檢測數據)
+   ```
+
+2. **啟動Streamlit應用程式**
+   ```bash
+   streamlit run app.py
+   ```
+
+3. **觀察檢測流程**
+   - 系統每10秒更新一次檢測結果
+   - 自動模擬完整的PPE穿戴流程
+   - 觀察三階段檢測的自動切換
+
+### 方法二：手動控制模式 (用於實際部署)
+
+1. **創建空白資料庫**
+   ```bash
+   python ppe_simulator.py
+   # 選擇 3 (只創建資料庫後退出)
+   ```
+
+2. **整合您的AI模型**
+   - 讓AI模型每10秒更新SQLite資料庫
+   - 使用標準的SQL UPDATE語句
+
+3. **啟動監控介面**
+   ```bash
+   streamlit run app.py
+   ```
+
+## 📁 檔案結構
+
+```
+ppe_detection/
+├── app.py                    # 主程式 - Streamlit應用程式
+├── ppe_simulator.py          # 資料庫生成器和模擬工具
+├── requirements.txt          # Python依賴套件清單
+├── ppe_detection.db         # SQLite資料庫 (執行後生成)
+├── readme                   # 本說明文件
+└── logs/                   # 日誌檔案目錄 (自動生成)
+```
+
+## 🏗️ 系統架構
+
+### 系統流程圖
+```
+AI模型檢測 → SQLite資料庫 → Streamlit介面 → 視覺化顯示
+     ↑                                        ↓
+     └─────────── 手動控制 ←──────────────────┘
+```
+
+### 狀態機設計
+```
+[0] 等待人員
+     ↓ (檢測到人員)
+[1] 第一階段: 頭部防護
+     ↓ (安全帽 + 護目鏡 通過)
+[2] 第二階段: 手足防護  
+     ↓ (手套 + 安全靴 通過)
+[3] 第三階段: 身體防護
+     ↓ (防護衣 + 防護面罩 通過)
+[4] 檢測完成
+     ↓ (30秒後或人員離開30秒)
+[0] 自動重置
+```
+
+## 📖 使用說明
+
+### 🎮 Streamlit 介面操作
+
+#### 主要區域
+1. **標題列**: 顯示系統名稱和完成狀態
+2. **人員狀態**: 顯示是否檢測到人員
+3. **三階段檢測區**: 顯示各階段的檢測進度和結果
+4. **控制面板**: 手動控制和系統重置
+5. **系統日誌**: 即時顯示檢測日誌
+
+#### 控制按鈕
+- **✅ 手動通過**: 強制通過當前階段
+- **🔄 重置系統**: 重置所有檢測狀態
+- **🔍 調試信息**: 查看詳細的系統狀態
+
+### 🗄️ 資料庫操作
+
+#### 手動更新檢測結果
+```bash
+python ppe_simulator.py
+# 選擇 2 (手動更新數據)
+# 輸入格式: has_person,helmet,goggles,gloves,boots,suit,mask
+# 範例: pass,pass,pass,fail,fail,fail,fail
+```
+
+#### 直接SQL操作
+```sql
+-- 更新檢測結果
+UPDATE ppe_detection SET 
+    has_person = 'pass',
+    helmet = 'pass',
+    goggles = 'pass',
+    gloves = 'fail',
+    boots = 'fail',
+    suit = 'fail',
+    mask = 'fail',
+    last_updated = CURRENT_TIMESTAMP
+WHERE id = 1;
+
+-- 查詢當前狀態
+SELECT * FROM ppe_detection WHERE id = 1;
+```
+
+## 🗃️ 資料庫結構
+
+### 主要資料表: `ppe_detection`
+
+| 欄位名稱 | 資料型別 | 預設值 | 說明 |
+|---------|---------|--------|------|
+| `id` | INTEGER | 1 | 主鍵，固定為1 |
+| `has_person` | TEXT | 'fail' | 是否檢測到人員 |
+| `helmet` | TEXT | 'fail' | 安全帽檢測結果 |
+| `goggles` | TEXT | 'fail' | 護目鏡檢測結果 |
+| `gloves` | TEXT | 'fail' | 手套檢測結果 |
+| `boots` | TEXT | 'fail' | 安全靴檢測結果 |
+| `suit` | TEXT | 'fail' | 防護衣檢測結果 |
+| `mask` | TEXT | 'fail' | 防護面罩檢測結果 |
+| `last_updated` | DATETIME | CURRENT_TIMESTAMP | 最後更新時間 |
+
+### 值的定義
+- `'pass'`: 檢測通過
+- `'fail'`: 檢測失敗或未檢測到
+
+## 🔌 API說明
+
+### 給AI模型開發者的整合指南
+
+#### 1. 資料庫連接
+```python
+import sqlite3
+
+# 連接資料庫
+conn = sqlite3.connect('ppe_detection.db')
+cursor = conn.cursor()
+```
+
+#### 2. 更新檢測結果
+```python
+def update_detection_results(has_person, helmet, goggles, gloves, boots, suit, mask):
+    """
+    更新PPE檢測結果
+    參數: 所有參數都應該是 'pass' 或 'fail'
+    """
+    cursor.execute('''
+        UPDATE ppe_detection SET 
+        has_person = ?, helmet = ?, goggles = ?, gloves = ?, 
+        boots = ?, suit = ?, mask = ?, last_updated = CURRENT_TIMESTAMP
+        WHERE id = 1
+    ''', (has_person, helmet, goggles, gloves, boots, suit, mask))
+    
+    conn.commit()
+
+# 使用範例
+update_detection_results('pass', 'pass', 'pass', 'fail', 'fail', 'fail', 'fail')
+```
+
+#### 3. 建議的更新頻率
+- **推薦**: 每5-10秒更新一次
+- **最快**: 每1秒 (高頻監控)
+- **最慢**: 每30秒 (節能模式)
+
+#### 4. 錯誤處理
+```python
+try:
+    update_detection_results(...)
+    print("✅ 更新成功")
+except Exception as e:
+    print(f"❌ 更新失敗: {e}")
+```
+
+## 🔧 故障排除
+
+### 常見問題
+
+#### Q1: 無法啟動Streamlit
+```bash
+# 解決方案
+pip install --upgrade streamlit
+streamlit --version
+```
+
+#### Q2: 資料庫檔案不存在
+```bash
+# 解決方案
+python ppe_simulator.py
+# 選擇 3 創建資料庫
+```
+
+#### Q3: 檢測狀態不更新
+**可能原因**:
+- AI模型沒有正確更新資料庫
+- 資料庫權限問題
+- 網路連接問題
+
+**解決方案**:
+```bash
+# 檢查資料庫內容
+python ppe_simulator.py
+# 選擇 2 手動更新測試
+```
+
+#### Q4: Streamlit介面卡住
+**解決方案**:
+1. 重新整理瀏覽器
+2. 重啟Streamlit應用程式
+3. 檢查系統資源使用情況
+
+### 日誌檢查
+
+#### 在Streamlit介面中
+- 查看控制面板的「即時日誌」標籤
+- 使用「歷史日誌」標籤檢視過往日誌檔案
+- 展開「調試信息」查看詳細狀態
+
+#### 在終端中
+```bash
+# 啟動時加上詳細日誌
+streamlit run app.py --logger.level=debug
+```
+
+## 🔄 更新日誌
+
+### v5.1 (Current)
+- ✨ 增強版日誌系統 - 檔案儲存 + 歷史查詢
+- 📁 自動創建logs目錄並按日期分類日誌
+- 📚 歷史日誌檢視功能，支援檔案選擇和載入
+- 🔧 改善的錯誤處理和系統穩定性
+- 🗄️ 基於SQLite的完全自動化檢測
+- 🚀 三階段檢測流程
+- 🎯 智能狀態機設計
+- 📊 即時和歷史日誌雙重系統
+
+### v4.0
+- 🏗️ 模組化架構重構
+- 📦 簡化部署流程
+- 🔌 API標準化
+
+### v3.0
+- 📹 RTSP攝影機支援
+- 🗄️ SQLite資料庫整合
+- 🤖 自動檢測模式
+
+### v2.0
+- 🎨 UI/UX改進
+- 🚦 三色燈狀態顯示
+- 📝 日誌系統
+
+### v1.0
+- 🎯 基本PPE檢測功能
+- 📊 Streamlit介面
+- 🔧 手動控制
+
+## 📞 支援與聯絡
+
+### 技術支援
+- 📧 Email: [your-email@example.com]
+- 📱 Phone: [your-phone-number]
+- 💬 Chat: [your-support-channel]
+
+### 開發團隊
+- 👨‍💻 主要開發者: [Your Name]
+- 🤖 AI模型團隊: [AI Team]
+- 🎨 UI設計師: [UI Designer]
+
+### 版權聲明
+```
+MIT License
+
+Copyright (c) 2024 PPE Detection System
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+---
+
+## 🎯 快速參考
+
+### 一鍵啟動
+```bash
+# 1. 創建模擬資料庫
+python ppe_simulator.py  # 選擇 1
+
+# 2. 啟動應用程式
+streamlit run app.py
+
+# 3. 開啟瀏覽器
+# http://localhost:8501
+```
+
+### 重要檔案
+- `app.py` - 主程式
+- `ppe_simulator.py` - 資料庫生成器和模擬工具
+- `ppe_detection.db` - SQLite資料庫
+
+### 重要指令
+- 更新檢測結果: SQL UPDATE
+- 重置系統: 點擊🔄按鈕
+- 手動通過: 點擊✅按鈕
+
+**🎉 恭喜！您已經成功設置PPE檢測系統！**
